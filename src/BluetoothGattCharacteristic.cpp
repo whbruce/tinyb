@@ -158,7 +158,9 @@ static void on_properties_changed(GDBusProxy *proxy, GVariant *changed_propertie
     }
 }
 
-bool BluetoothGattCharacteristic::set_value_change_callback(BluetoothValueChangedCallback callback, void *user_data)
+bool BluetoothGattCharacteristic::set_value_change_callback(
+    BluetoothValueChangedCallback callback,
+    void *user_data)
 {
     callback_data.value_changed_callback = callback;
     callback_data.value_changed_userdata = user_data;

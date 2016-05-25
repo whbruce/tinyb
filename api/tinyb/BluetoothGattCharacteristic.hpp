@@ -28,13 +28,15 @@
 #include "BluetoothGattDescriptor.hpp"
 #include <string>
 #include <vector>
+#include <functional>
 
 /* Forward declaration of types */
 struct _Object;
 typedef struct _Object Object;
 struct _GattCharacteristic1;
 typedef struct _GattCharacteristic1 GattCharacteristic1;
-typedef void (*BluetoothValueChangedCallback)(BluetoothGattCharacteristic &, std::vector<unsigned char> &, void *);
+typedef std::function<void(BluetoothGattCharacteristic &, std::vector<unsigned char> &, void *)>
+    BluetoothValueChangedCallback;
 
 struct characteristic_callback_data {
     BluetoothGattCharacteristic *object;
@@ -84,7 +86,9 @@ public:
     ~BluetoothGattCharacteristic();
     virtual BluetoothGattCharacteristic *clone() const;
 
-    bool set_value_change_callback(BluetoothValueChangedCallback callback, void *user_data);
+    bool set_value_change_callback(
+        BluetoothValueChangedCallback callback,
+        void *user_data);
 
     std::unique_ptr<BluetoothGattDescriptor> find(
         std::string *identifier,
