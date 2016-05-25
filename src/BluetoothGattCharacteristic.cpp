@@ -64,6 +64,8 @@ BluetoothGattCharacteristic::BluetoothGattCharacteristic(const BluetoothGattChar
 
 BluetoothGattCharacteristic::~BluetoothGattCharacteristic()
 {
+    if (get_notifying())
+        stop_notify();
     g_object_unref(object);
 }
 
@@ -135,6 +137,34 @@ bool BluetoothGattCharacteristic::write_value (
     return result;
 }
 
+static void on_properties_changed(GDBusProxy *proxy, GVariant *changed_properties, GStrv invalidated_properties, gpointer user_data) {
+    if(g_variant_n_children(changed_properties) > 0) {
+        GVariantIter *iter = NULL;
+
+        GVariant *value;
+        const gchar *key;
+        auto cd = (characteristic_callback_data *) user_data;
+
+        g_variant_get(changed_properties, "a{sv}", &iter);
+        while (iter != nullptr && g_variant_iter_loop(iter, "{&sv}", &key, &value)) {
+            if (cd->value_changed_callback != nullptr && g_ascii_strncasecmp(key, "value", 5) == 0) {
+                if (cd->value_changed_callback == nullptr)
+                    continue;
+                std::vector<unsigned char> new_value = from_iter_to_vector(value);
+                cd->value_changed_callback(*cd->object, new_value, cd->value_changed_userdata);
+            }
+        }
+        g_variant_iter_free (iter);
+    }
+}
+
+bool BluetoothGattCharacteristic::set_value_change_callback(BluetoothValueChangedCallback callback, void *user_data)
+{
+    callback_data.value_changed_callback = callback;
+    callback_data.value_changed_userdata = user_data;
+    callback_data.object = this;
+}
+
 bool BluetoothGattCharacteristic::start_notify ()
 {
     GError *error = NULL;
@@ -144,6 +174,8 @@ bool BluetoothGattCharacteristic::start_notify ()
         NULL,
         &error
     );
+
+    g_signal_connect(object, "g-properties-changed", G_CALLBACK (on_properties_changed), &callback_data);
     handle_error(error);
     return result;
 }

@@ -34,6 +34,14 @@ struct _Object;
 typedef struct _Object Object;
 struct _GattCharacteristic1;
 typedef struct _GattCharacteristic1 GattCharacteristic1;
+typedef void (*BluetoothValueChangedCallback)(BluetoothGattCharacteristic &, std::vector<unsigned char> &, void *);
+
+struct characteristic_callback_data {
+    BluetoothGattCharacteristic *object;
+    BluetoothValueChangedCallback value_changed_callback;
+    void *value_changed_userdata;
+};
+
 
 /**
   * Provides access to Bluetooth GATT characteristic. Follows the BlueZ adapter API
@@ -60,6 +68,8 @@ protected:
         BluetoothObject *parent = nullptr);
 public:
 
+    struct characteristic_callback_data callback_data;
+
     static std::string java_class() {
         return std::string(JAVA_PACKAGE "/BluetoothGattCharacteristic");
     }
@@ -73,6 +83,8 @@ public:
     BluetoothGattCharacteristic(const BluetoothGattCharacteristic &object);
     ~BluetoothGattCharacteristic();
     virtual BluetoothGattCharacteristic *clone() const;
+
+    bool set_value_change_callback(BluetoothValueChangedCallback callback, void *user_data);
 
     std::unique_ptr<BluetoothGattDescriptor> find(
         std::string *identifier,
