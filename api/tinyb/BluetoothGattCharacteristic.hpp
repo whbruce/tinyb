@@ -56,6 +56,7 @@ friend class tinyb::BluetoothGattService;
 friend class tinyb::BluetoothGattDescriptor;
 friend class tinyb::BluetoothManager;
 friend class tinyb::BluetoothEventManager;
+friend class BluetoothGattCharacteristicChangeHandler;
 
 private:
     GattCharacteristic1 *object;
@@ -68,9 +69,9 @@ protected:
         std::string *name = nullptr,
         std::string *identifier = nullptr,
         BluetoothObject *parent = nullptr);
-public:
 
-    struct characteristic_callback_data callback_data;
+    std::function<void(std::vector<unsigned char> &)> value_changed_callback;
+public:
 
     static std::string java_class() {
         return std::string(JAVA_PACKAGE "/BluetoothGattCharacteristic");

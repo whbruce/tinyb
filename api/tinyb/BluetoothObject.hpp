@@ -45,6 +45,7 @@ enum class BluetoothType {
     class BluetoothDevice;
     class BluetoothGattService;
     class BluetoothGattCharacteristic;
+    class BluetoothGattCharacteristicChangeHandler;
     class BluetoothGattDescriptor;
     class BluetoothException;
 }
