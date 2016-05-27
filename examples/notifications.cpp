@@ -134,7 +134,7 @@ int main(int argc, char **argv)
     /* Activate the temperature measurements */
     std::vector<unsigned char> config_on {0x01};
     temp_config->write_value(config_on);
-    temp_period->write_value({200});
+    temp_period->write_value({100});
     temp_value->set_value_change_callback(data_callback, nullptr);
     temp_value->start_notify();
 

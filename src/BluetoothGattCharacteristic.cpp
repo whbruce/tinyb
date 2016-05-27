@@ -169,8 +169,7 @@ bool BluetoothGattCharacteristic::set_value_change_callback(
     BluetoothValueChangedCallback callback,
     void *userdata)
 {
-    value_changed_callback = [callback, this, userdata] (std::vector<unsigned char> &v)
-        { callback(*this, v, userdata); };
+    value_changed_callback = std::bind(callback, std::ref(*this), std::placeholders::_1, userdata);
     return true;
 }
 
