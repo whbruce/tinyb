@@ -45,9 +45,10 @@ public:
             const gchar *key;
             g_variant_get(changed_properties, "a{sv}", &iter);
             while (iter != nullptr && g_variant_iter_loop(iter, "{&sv}", &key, &value)) {
-                if (c->value_changed_callback != nullptr && g_ascii_strncasecmp(key, "value", 5) == 0) {
+                auto value_callback = c->value_changed_callback;
+                if (value_callback != nullptr && g_ascii_strncasecmp(key, "value", 5) == 0) {
                     std::vector<unsigned char> new_value = from_iter_to_vector(value);
-                    c->value_changed_callback(new_value);
+                    value_callback(new_value);
                 }
             }
             g_variant_iter_free (iter);
@@ -172,6 +173,13 @@ bool BluetoothGattCharacteristic::set_value_change_callback(
     value_changed_callback = std::bind(callback, std::ref(*this), std::placeholders::_1, userdata);
     return true;
 }
+
+bool BluetoothGattCharacteristic::unset_value_change_callback()
+{
+    value_changed_callback = nullptr;
+    return true;
+}
+
 
 bool BluetoothGattCharacteristic::start_notify ()
 {

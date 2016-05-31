@@ -90,6 +90,7 @@ public:
     bool set_value_change_callback(
         BluetoothValueChangedCallback callback,
         void *user_data);
+    bool unset_value_change_callback();
 
     std::unique_ptr<BluetoothGattDescriptor> find(
         std::string *identifier,
