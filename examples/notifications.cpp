@@ -135,8 +135,7 @@ int main(int argc, char **argv)
     std::vector<unsigned char> config_on {0x01};
     temp_config->write_value(config_on);
     temp_period->write_value({100});
-    temp_value->set_value_change_callback(data_callback, nullptr);
-    temp_value->start_notify();
+    temp_value->enable_value_notifications(data_callback, nullptr);
 
     std::mutex m;
     std::unique_lock<std::mutex> lock(m);

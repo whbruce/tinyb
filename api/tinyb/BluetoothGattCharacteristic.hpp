@@ -35,14 +35,6 @@ struct _Object;
 typedef struct _Object Object;
 struct _GattCharacteristic1;
 typedef struct _GattCharacteristic1 GattCharacteristic1;
-typedef std::function<void(BluetoothGattCharacteristic &, std::vector<unsigned char> &, void *)>
-    BluetoothValueChangedCallback;
-
-struct characteristic_callback_data {
-    BluetoothGattCharacteristic *object;
-    BluetoothValueChangedCallback value_changed_callback;
-    void *value_changed_userdata;
-};
 
 
 /**
@@ -58,6 +50,10 @@ friend class tinyb::BluetoothManager;
 friend class tinyb::BluetoothEventManager;
 friend class BluetoothGattCharacteristicChangeHandler;
 
+template <typename T>
+using DataCallback = BluetoothDataCallback<BluetoothGattCharacteristic, T>;
+typedef DataCallback<std::vector<unsigned char> &> ValueChangedCallback;
+
 private:
     GattCharacteristic1 *object;
 
@@ -71,6 +67,10 @@ protected:
         BluetoothObject *parent = nullptr);
 
     std::function<void(std::vector<unsigned char> &)> value_changed_callback;
+
+    bool start_notify ();
+    bool stop_notify ();
+
 public:
 
     static std::string java_class() {
@@ -86,11 +86,6 @@ public:
     BluetoothGattCharacteristic(const BluetoothGattCharacteristic &object);
     ~BluetoothGattCharacteristic();
     virtual BluetoothGattCharacteristic *clone() const;
-
-    bool set_value_change_callback(
-        BluetoothValueChangedCallback callback,
-        void *user_data);
-    bool unset_value_change_callback();
 
     std::unique_ptr<BluetoothGattDescriptor> find(
         std::string *identifier,
@@ -115,11 +110,11 @@ public:
       */
     bool write_value (const std::vector<unsigned char> &arg_value);
 
-    bool start_notify (
-    );
 
-    bool stop_notify (
-    );
+    bool enable_value_notifications(
+        ValueChangedCallback callback,
+        void *user_data);
+    bool disable_value_notifications();
 
     /* D-Bus property accessors: */
     /** Get the UUID of this characteristic.
