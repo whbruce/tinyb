@@ -43,6 +43,7 @@ enum class BluetoothType {
     class BluetoothManager;
     class BluetoothAdapter;
     class BluetoothDevice;
+    class BluetoothDeviceChangeHandler;
     class BluetoothGattService;
     class BluetoothGattCharacteristic;
     class BluetoothGattCharacteristicChangeHandler;
