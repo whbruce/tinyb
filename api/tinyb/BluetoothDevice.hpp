@@ -268,7 +268,13 @@ public:
       */
     void enable_rssi_notifications(
         std::function<void(BluetoothDevice &device, int16_t rssi, void *userdata)> callback,
-        void *userdata);
+        void *userdata = nullptr);
+   /** Registers a callback which will be called when the RSSI property changes.
+      * @param callback The callback function to be called.
+      * @param rssi Will contain the new value of the rssi property
+      */
+    void enable_rssi_notifications(
+        std::function<void(int16_t rssi)> callback);
     /** Unregisters the callback set with enable_rssi_notifications. No more notifications will
       * be sent after this operation completes.
       */
@@ -288,6 +294,12 @@ public:
     void enable_connected_notifications(
         std::function<void(BluetoothDevice &device, bool connected, void *userdata)> callback,
         void *userdata);
+    /** Registers a callback which will be called when the connected property changes.
+      * @param callback The callback function to be called.
+      * @param connected Will contain the new value of the connected property
+      */
+    void enable_connected_notifications(
+        std::function<void(bool connected)> callback);
     /** Unregisters the callback set with enable_connected_notifications. No more notifications will
       * be sent after this operation completes.
       */

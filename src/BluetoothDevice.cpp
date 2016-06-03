@@ -38,6 +38,9 @@ public:
 
         auto c = static_cast<BluetoothDevice*>(userdata);
 
+        if (!c->lock())
+            return;
+
         if(g_variant_n_children(changed_properties) > 0) {
             GVariantIter *iter = NULL;
 
@@ -46,15 +49,46 @@ public:
             g_variant_get(changed_properties, "a{sv}", &iter);
             while (iter != nullptr && g_variant_iter_loop(iter, "{&sv}", &key, &value)) {
                 auto rssi_callback = c->rssi_callback;
-                if (rssi_callback != nullptr && g_ascii_strncasecmp(key, "rssi", 5) == 0) {
+                if (rssi_callback != nullptr && g_ascii_strncasecmp(key, "rssi", 4) == 0) {
                     int16_t new_value;
+                    g_variant_get(value, "n", &new_value);
                     rssi_callback(new_value);
+                    continue;
+                }
+                auto blocked_callback = c->blocked_callback;
+                if (blocked_callback != nullptr && g_ascii_strncasecmp(key, "blocked", 7) == 0) {
+                    bool new_value;
+                    g_variant_get(value, "b", &new_value);
+                    blocked_callback(new_value);
+                    continue;
+                }
+                auto trusted_callback = c->trusted_callback;
+                if (trusted_callback != nullptr && g_ascii_strncasecmp(key, "trusted", 7) == 0) {
+                    bool new_value;
+                    g_variant_get(value, "b", &new_value);
+                    trusted_callback(new_value);
+                    continue;
+                }
+                auto paired_callback = c->paired_callback;
+                if (paired_callback != nullptr && g_ascii_strncasecmp(key, "paired", 6) == 0) {
+                    bool new_value;
+                    g_variant_get(value, "b", &new_value);
+                    paired_callback(new_value);
+                    continue;
+                }
+                auto connected_callback = c->connected_callback;
+                if (connected_callback != nullptr && g_ascii_strncasecmp(key, "connected", 9) == 0) {
+                    bool new_value;
+                    g_variant_get(value, "b", &new_value);
+                    connected_callback(new_value);
+                    continue;
                 }
             }
             g_variant_iter_free (iter);
         }
-    }
 
+        c->unlock();
+    }
 };
 
 std::string BluetoothDevice::get_class_name() const
@@ -84,6 +118,7 @@ BluetoothDevice::BluetoothDevice(Device1 *object)
 
     g_signal_connect(G_DBUS_PROXY(object), "g-properties-changed",
         G_CALLBACK(BluetoothDeviceChangeHandler::on_properties_changed), this);
+    valid = true;
 }
 
 BluetoothDevice::BluetoothDevice(const BluetoothDevice &object)
@@ -93,7 +128,9 @@ BluetoothDevice::BluetoothDevice(const BluetoothDevice &object)
 
 BluetoothDevice::~BluetoothDevice()
 {
+    valid = false;
     g_signal_handlers_disconnect_by_data(object, this);
+    lk.lock();
     g_object_unref(object);
 }
 
@@ -332,6 +369,10 @@ void BluetoothDevice::enable_rssi_notifications(
     void *userdata) {
     rssi_callback = std::bind(callback, std::ref(*this), std::placeholders::_1, userdata);
 }
+void BluetoothDevice::enable_rssi_notifications(
+    std::function<void(int16_t)> callback) {
+    rssi_callback = callback;
+}
 void BluetoothDevice::disable_rssi_notifications() {
     rssi_callback = nullptr;
 }
@@ -342,9 +383,13 @@ bool BluetoothDevice::get_connected ()
 }
 
 void BluetoothDevice::enable_connected_notifications(
-    std::function<void(BluetoothDevice &device, bool connected, void *userdata)> callback,
+    std::function<void(BluetoothDevice &, bool, void *)> callback,
     void *userdata) {
     connected_callback = std::bind(callback, std::ref(*this), std::placeholders::_1, userdata);
+}
+void BluetoothDevice::enable_connected_notifications(
+    std::function<void(bool)> callback) {
+    connected_callback = callback;
 }
 void BluetoothDevice::disable_connected_notifications() {
     connected_callback = nullptr;

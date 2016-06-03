@@ -22,8 +22,10 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <memory>
 #pragma once
+#include <memory>
+#include <mutex>
+#include <atomic>
 
 #define JAVA_PACKAGE "tinyb"
 
@@ -54,8 +56,26 @@ template <typename E, typename T>
     using BluetoothDataCallback = std::function<void(E &, T, void *)>;
 }
 
+
 class tinyb::BluetoothObject
 {
+protected:
+    std::mutex lk;
+    std::atomic_bool valid;
+
+    bool lock() {
+         if (valid) {
+             lk.lock();
+             return true;
+         } else {
+             return false;
+         }
+     }
+
+     void unlock() {
+         lk.unlock();
+     }
+
 public:
     static BluetoothType class_type() { return BluetoothType::NONE; }
 
