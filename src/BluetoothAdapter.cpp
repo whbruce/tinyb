@@ -151,8 +151,6 @@ bool BluetoothAdapter::remove_device (
     return result;
 }
 
-
-
 /* D-Bus property accessors: */
 std::string BluetoothAdapter::get_address ()
 {
@@ -184,6 +182,18 @@ bool BluetoothAdapter::get_powered ()
     return adapter1_get_powered (object);
 }
 
+void BluetoothAdapter::enable_powered_notifications(
+        std::function<void(BluetoothAdapter &adapter, bool powered, void *userdata)> callback,
+        void *userdata) {
+    powered_callback = std::bind(callback, std::ref(*this), std::placeholders::_1, userdata);
+}
+void BluetoothAdapter::enable_powered_notifications(std::function<void(bool powered)> callback) {
+    powered_callback = callback;
+}
+void BluetoothAdapter::disable_powered_notifications() {
+    powered_callback = nullptr;
+}
+
 void BluetoothAdapter::set_powered (bool  value)
 {
     if (get_powered() != value)
@@ -200,6 +210,18 @@ void BluetoothAdapter::set_discoverable (bool  value)
     adapter1_set_discoverable (object, value);
 }
 
+void BluetoothAdapter::enable_discoverable_notifications(
+    std::function<void(BluetoothAdapter &adapter, bool discoverable, void *userdata)> callback,
+    void *userdata) {
+    discoverable_callback = std::bind(callback, std::ref(*this), std::placeholders::_1, userdata);
+}
+void BluetoothAdapter::enable_discoverable_notifications(std::function<void(bool discoverable)> callback) {
+    discoverable_callback = callback;
+}
+void BluetoothAdapter::disable_discoverable_notifications() {
+    discoverable_callback = nullptr;
+}
+
 unsigned int BluetoothAdapter::get_discoverable_timeout ()
 {
     return adapter1_get_discoverable_timeout (object);
@@ -213,6 +235,18 @@ void BluetoothAdapter::set_discoverable_timeout (unsigned int  value)
 bool BluetoothAdapter::get_pairable ()
 {
     return adapter1_get_pairable (object);
+}
+
+void BluetoothAdapter::enable_pairable_notifications(
+        std::function<void(BluetoothAdapter &adapter, bool pairable, void *userdata)> callback,
+        void *userdata) {
+    pairable_callback = std::bind(callback, std::ref(*this), std::placeholders::_1, userdata);
+}
+void BluetoothAdapter::enable_pairable_notifications(std::function<void(bool pairable)> callback) {
+    pairable_callback = callback;
+}
+void BluetoothAdapter::disable_pairable_notifications() {
+    pairable_callback = nullptr;
 }
 
 void BluetoothAdapter::set_pairable (bool  value)
@@ -233,6 +267,18 @@ void BluetoothAdapter::set_pairable_timeout (unsigned int  value)
 bool BluetoothAdapter::get_discovering ()
 {
     return adapter1_get_discovering (object);
+}
+
+void BluetoothAdapter::enable_discovering_notifications(
+        std::function<void(BluetoothAdapter &adapter, bool discovering, void *userdata)> callback,
+        void *userdata) {
+    discovering_callback = std::bind(callback, std::ref(*this), std::placeholders::_1, userdata);
+}
+void BluetoothAdapter::enable_discovering_notifications(std::function<void(bool discovering)> callback) {
+    discovering_callback = callback;
+}
+void BluetoothAdapter::disable_discovering_notifications() {
+    discovering_callback = nullptr;
 }
 
 std::vector<std::string> BluetoothAdapter::get_uuids ()

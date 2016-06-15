@@ -136,7 +136,26 @@ bool BluetoothGattDescriptor::write_value (
     return result;
 }
 
+bool BluetoothGattDescriptor::enable_value_notifications(
+    std::function<void(BluetoothGattDescriptor &, std::vector<unsigned char> &,void *)> callback,
+    void *userdata)
+{
+    value_changed_callback = std::bind(callback, std::ref(*this), std::placeholders::_1, userdata);
+    return true;
+}
 
+bool BluetoothGattDescriptor::enable_value_notifications(
+    std::function<void(std::vector<unsigned char> &)> callback)
+{
+    value_changed_callback = callback;
+    return true;
+}
+
+bool BluetoothGattDescriptor::disable_value_notifications()
+{
+    value_changed_callback = nullptr;
+    return true;
+}
 
 /* D-Bus property accessors: */
 std::string BluetoothGattDescriptor::get_uuid ()

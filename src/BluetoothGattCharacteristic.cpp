@@ -167,10 +167,18 @@ bool BluetoothGattCharacteristic::write_value (
 }
 
 bool BluetoothGattCharacteristic::enable_value_notifications(
-    ValueChangedCallback callback,
+    std::function<void(BluetoothGattCharacteristic &, std::vector<unsigned char> &,void *)> callback,
     void *userdata)
 {
     value_changed_callback = std::bind(callback, std::ref(*this), std::placeholders::_1, userdata);
+    start_notify();
+    return true;
+}
+
+bool BluetoothGattCharacteristic::enable_value_notifications(
+    std::function<void(std::vector<unsigned char> &)> callback)
+{
+    value_changed_callback = callback;
     start_notify();
     return true;
 }

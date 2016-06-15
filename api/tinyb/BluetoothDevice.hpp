@@ -50,9 +50,6 @@ friend class tinyb::BluetoothAdapter;
 friend class tinyb::BluetoothGattService;
 friend class tinyb::BluetoothDeviceChangeHandler;
 
-template <typename T>
-using DataCallback = BluetoothDataCallback<BluetoothDevice, T>;
-
 private:
     Device1 *object;
 
@@ -220,6 +217,8 @@ public:
     void enable_trusted_notifications(
         std::function<void(BluetoothDevice &device, bool trusted, void *userdata)> callback,
         void *userdata);
+    void enable_trusted_notifications(
+        std::function<void(bool trusted)> callback);
     /** Unregisters the callback set with enable_trusted_notifications. No more notifications will
       * be sent after this operation completes.
       */
@@ -244,6 +243,8 @@ public:
     void enable_blocked_notifications(
         std::function<void(BluetoothDevice &device, bool blocked, void *userdata)> callback,
         void *userdata);
+    void enable_blocked_notifications(
+        std::function<void(bool blocked)> callback);
     /** Unregisters the callback set with enable_trusted_notifications. No more notifications will
       * be sent after this operation completes.
       */

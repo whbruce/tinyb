@@ -331,6 +331,10 @@ void BluetoothDevice::enable_trusted_notifications(
     void *userdata) {
     trusted_callback = std::bind(callback, std::ref(*this), std::placeholders::_1, userdata);
 }
+void BluetoothDevice::enable_trusted_notifications(
+    std::function<void(bool)> callback) {
+    trusted_callback = callback;
+}
 void BluetoothDevice::disable_trusted_notifications() {
     trusted_callback = nullptr;
 }
@@ -349,6 +353,10 @@ void BluetoothDevice::enable_blocked_notifications(
     std::function<void(BluetoothDevice &, bool, void *)> callback,
     void *userdata) {
     blocked_callback = std::bind(callback, std::ref(*this), std::placeholders::_1, userdata);
+}
+void BluetoothDevice::enable_blocked_notifications(
+    std::function<void(bool)> callback) {
+    blocked_callback = callback;
 }
 void BluetoothDevice::disable_blocked_notifications() {
     blocked_callback = nullptr;

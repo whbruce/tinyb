@@ -50,10 +50,6 @@ friend class tinyb::BluetoothManager;
 friend class tinyb::BluetoothEventManager;
 friend class BluetoothGattCharacteristicChangeHandler;
 
-template <typename T>
-using DataCallback = BluetoothDataCallback<BluetoothGattCharacteristic, T>;
-typedef DataCallback<std::vector<unsigned char> &> ValueChangedCallback;
-
 private:
     GattCharacteristic1 *object;
 
@@ -110,10 +106,11 @@ public:
       */
     bool write_value (const std::vector<unsigned char> &arg_value);
 
-
     bool enable_value_notifications(
-        ValueChangedCallback callback,
+        std::function<void(BluetoothGattCharacteristic &characteristic, std::vector<unsigned char> &value,void *userdata)> callback,
         void *user_data);
+    bool enable_value_notifications(
+        std::function<void(std::vector<unsigned char> &value)> callback);
     bool disable_value_notifications();
 
     /* D-Bus property accessors: */

@@ -56,6 +56,8 @@ protected:
         std::string *identifier = nullptr,
         BluetoothObject *parent = nullptr);
 
+    std::function<void(std::vector<unsigned char> &)> value_changed_callback;
+
 public:
 
     static std::string java_class() {
@@ -87,6 +89,13 @@ public:
     bool write_value (
         const std::vector<unsigned char> &arg_value
     );
+
+    bool enable_value_notifications(
+        std::function<void(BluetoothGattDescriptor &descriptor, std::vector<unsigned char> &value,void *userdata)> callback,
+        void *user_data);
+    bool enable_value_notifications(
+        std::function<void(std::vector<unsigned char> &value)> callback);
+    bool disable_value_notifications();
 
     /* D-Bus property accessors: */
     /** Get the UUID of this descriptor.
