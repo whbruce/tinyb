@@ -24,6 +24,7 @@
 
 #include "generated-code.h"
 #include "tinyb_utils.hpp"
+#include "BluetoothNotificationHandler.hpp"
 #include "BluetoothDevice.hpp"
 #include "BluetoothGattService.hpp"
 #include "BluetoothManager.hpp"
@@ -31,65 +32,61 @@
 
 using namespace tinyb;
 
-class tinyb::BluetoothDeviceChangeHandler {
+void BluetoothNotificationHandler::on_properties_changed_device(GDBusProxy *proxy, GVariant *changed_properties, GStrv invalidated_properties, gpointer userdata) {
 
-public:
-    static void on_properties_changed(GDBusProxy *proxy, GVariant *changed_properties, GStrv invalidated_properties, gpointer userdata) {
+    auto c = static_cast<BluetoothDevice*>(userdata);
 
-        auto c = static_cast<BluetoothDevice*>(userdata);
+    if (!c->lock())
+        return;
 
-        if (!c->lock())
-            return;
+    if(g_variant_n_children(changed_properties) > 0) {
+        GVariantIter *iter = NULL;
 
-        if(g_variant_n_children(changed_properties) > 0) {
-            GVariantIter *iter = NULL;
-
-            GVariant *value;
-            const gchar *key;
-            g_variant_get(changed_properties, "a{sv}", &iter);
-            while (iter != nullptr && g_variant_iter_loop(iter, "{&sv}", &key, &value)) {
-                auto rssi_callback = c->rssi_callback;
-                if (rssi_callback != nullptr && g_ascii_strncasecmp(key, "rssi", 4) == 0) {
-                    int16_t new_value;
-                    g_variant_get(value, "n", &new_value);
-                    rssi_callback(new_value);
-                    continue;
-                }
-                auto blocked_callback = c->blocked_callback;
-                if (blocked_callback != nullptr && g_ascii_strncasecmp(key, "blocked", 7) == 0) {
-                    bool new_value;
-                    g_variant_get(value, "b", &new_value);
-                    blocked_callback(new_value);
-                    continue;
-                }
-                auto trusted_callback = c->trusted_callback;
-                if (trusted_callback != nullptr && g_ascii_strncasecmp(key, "trusted", 7) == 0) {
-                    bool new_value;
-                    g_variant_get(value, "b", &new_value);
-                    trusted_callback(new_value);
-                    continue;
-                }
-                auto paired_callback = c->paired_callback;
-                if (paired_callback != nullptr && g_ascii_strncasecmp(key, "paired", 6) == 0) {
-                    bool new_value;
-                    g_variant_get(value, "b", &new_value);
-                    paired_callback(new_value);
-                    continue;
-                }
-                auto connected_callback = c->connected_callback;
-                if (connected_callback != nullptr && g_ascii_strncasecmp(key, "connected", 9) == 0) {
-                    bool new_value;
-                    g_variant_get(value, "b", &new_value);
-                    connected_callback(new_value);
-                    continue;
-                }
+        GVariant *value;
+        const gchar *key;
+        g_variant_get(changed_properties, "a{sv}", &iter);
+        while (iter != nullptr && g_variant_iter_loop(iter, "{&sv}", &key, &value)) {
+            auto rssi_callback = c->rssi_callback;
+            if (rssi_callback != nullptr && g_ascii_strncasecmp(key, "rssi", 5) == 0) {
+                int16_t new_value;
+                g_variant_get(value, "n", &new_value);
+                rssi_callback(new_value);
+                continue;
             }
-            g_variant_iter_free (iter);
+            auto blocked_callback = c->blocked_callback;
+            if (blocked_callback != nullptr && g_ascii_strncasecmp(key, "blocked", 8) == 0) {
+                bool new_value;
+                g_variant_get(value, "b", &new_value);
+                blocked_callback(new_value);
+                continue;
+            }
+            auto trusted_callback = c->trusted_callback;
+            if (trusted_callback != nullptr && g_ascii_strncasecmp(key, "trusted", 8) == 0) {
+                bool new_value;
+                g_variant_get(value, "b", &new_value);
+                trusted_callback(new_value);
+                continue;
+            }
+            auto paired_callback = c->paired_callback;
+            if (paired_callback != nullptr && g_ascii_strncasecmp(key, "paired", 7) == 0) {
+                bool new_value;
+                g_variant_get(value, "b", &new_value);
+                paired_callback(new_value);
+                continue;
+            }
+            auto connected_callback = c->connected_callback;
+            if (connected_callback != nullptr && g_ascii_strncasecmp(key, "connected", 10) == 0) {
+                bool new_value;
+                g_variant_get(value, "b", &new_value);
+                connected_callback(new_value);
+                continue;
+            }
         }
-
-        c->unlock();
+        g_variant_iter_free (iter);
     }
-};
+
+    c->unlock();
+}
 
 std::string BluetoothDevice::get_class_name() const
 {
@@ -117,7 +114,7 @@ BluetoothDevice::BluetoothDevice(Device1 *object)
     g_object_ref(object);
 
     g_signal_connect(G_DBUS_PROXY(object), "g-properties-changed",
-        G_CALLBACK(BluetoothDeviceChangeHandler::on_properties_changed), this);
+        G_CALLBACK(BluetoothNotificationHandler::on_properties_changed_device), this);
     valid = true;
 }
 
@@ -131,6 +128,7 @@ BluetoothDevice::~BluetoothDevice()
     valid = false;
     g_signal_handlers_disconnect_by_data(object, this);
     lk.lock();
+
     g_object_unref(object);
 }
 

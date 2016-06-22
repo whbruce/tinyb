@@ -43,6 +43,7 @@ class tinyb::BluetoothAdapter: public BluetoothObject
 friend class tinyb::BluetoothManager;
 friend class tinyb::BluetoothEventManager;
 friend class tinyb::BluetoothDevice;
+friend class tinyb::BluetoothNotificationHandler;
 
 private:
     Adapter1 *object;

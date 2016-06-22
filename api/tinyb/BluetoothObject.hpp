@@ -48,12 +48,9 @@ enum class BluetoothType {
     class BluetoothDeviceChangeHandler;
     class BluetoothGattService;
     class BluetoothGattCharacteristic;
-    class BluetoothGattCharacteristicChangeHandler;
+    class BluetoothNotificationHandler;
     class BluetoothGattDescriptor;
     class BluetoothException;
-
-template <typename E, typename T>
-    using BluetoothDataCallback = std::function<void(E &, T, void *)>;
 }
 
 

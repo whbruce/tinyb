@@ -24,12 +24,62 @@
 
 #include "generated-code.h"
 #include "tinyb_utils.hpp"
+#include "BluetoothNotificationHandler.hpp"
 #include "BluetoothAdapter.hpp"
 #include "BluetoothDevice.hpp"
 #include "BluetoothManager.hpp"
 #include "BluetoothException.hpp"
 
 using namespace tinyb;
+
+void BluetoothNotificationHandler::on_properties_changed_adapter(GDBusProxy *proxy, GVariant *changed_properties, GStrv invalidated_properties, gpointer userdata) {
+
+    auto c = static_cast<BluetoothAdapter*>(userdata);
+
+    if (!c->lock())
+        return;
+
+    if(g_variant_n_children(changed_properties) > 0) {
+        GVariantIter *iter = NULL;
+
+        GVariant *value;
+        const gchar *key;
+        g_variant_get(changed_properties, "a{sv}", &iter);
+        while (iter != nullptr && g_variant_iter_loop(iter, "{&sv}", &key, &value)) {
+            auto powered_callback = c->powered_callback;
+            if (powered_callback != nullptr && g_ascii_strncasecmp(key, "powered", 8) == 0) {
+                bool new_value;
+                g_variant_get(value, "b", &new_value);
+                powered_callback(new_value);
+                continue;
+            }
+            auto discoverable_callback = c->discoverable_callback;
+            if (discoverable_callback != nullptr && g_ascii_strncasecmp(key, "discoverable", 13) == 0) {
+                bool new_value;
+                g_variant_get(value, "b", &new_value);
+                discoverable_callback(new_value);
+                continue;
+            }
+            auto pairable_callback = c->pairable_callback;
+            if (pairable_callback != nullptr && g_ascii_strncasecmp(key, "pairable", 9) == 0) {
+                bool new_value;
+                g_variant_get(value, "b", &new_value);
+                pairable_callback(new_value);
+                continue;
+            }
+            auto discovering_callback = c->discovering_callback;
+            if (discovering_callback != nullptr && g_ascii_strncasecmp(key, "discovering", 12) == 0) {
+                bool new_value;
+                g_variant_get(value, "b", &new_value);
+                discovering_callback(new_value);
+                continue;
+            }
+        }
+        g_variant_iter_free (iter);
+    }
+
+    c->unlock();
+}
 
 std::string BluetoothAdapter::get_class_name() const
 {
@@ -55,6 +105,10 @@ BluetoothAdapter::BluetoothAdapter(Adapter1 *object)
 {
     this->object = object;
     g_object_ref(object);
+
+    g_signal_connect(G_DBUS_PROXY(object), "g-properties-changed",
+        G_CALLBACK(BluetoothNotificationHandler::on_properties_changed_adapter), this);
+    valid = true;
 }
 
 BluetoothAdapter::BluetoothAdapter(const BluetoothAdapter &object)
@@ -69,6 +123,10 @@ BluetoothAdapter *BluetoothAdapter::clone() const
 
 BluetoothAdapter::~BluetoothAdapter()
 {
+    valid = false;
+    g_signal_handlers_disconnect_by_data(object, this);
+    lk.lock();
+
     g_object_unref(object);
 }
 

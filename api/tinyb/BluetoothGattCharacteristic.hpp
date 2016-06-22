@@ -48,7 +48,7 @@ friend class tinyb::BluetoothGattService;
 friend class tinyb::BluetoothGattDescriptor;
 friend class tinyb::BluetoothManager;
 friend class tinyb::BluetoothEventManager;
-friend class BluetoothGattCharacteristicChangeHandler;
+friend class BluetoothNotificationHandler;
 
 private:
     GattCharacteristic1 *object;

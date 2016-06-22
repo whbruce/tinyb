@@ -42,6 +42,7 @@ class tinyb::BluetoothGattDescriptor: public BluetoothObject
 friend class tinyb::BluetoothGattCharacteristic;
 friend class tinyb::BluetoothManager;
 friend class tinyb::BluetoothEventManager;
+friend class tinyb::BluetoothNotificationHandler;
 
 private:
     GattDescriptor1 *object;

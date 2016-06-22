@@ -24,6 +24,7 @@
 
 #include "generated-code.h"
 #include "tinyb_utils.hpp"
+#include "BluetoothNotificationHandler.hpp"
 #include "BluetoothGattCharacteristic.hpp"
 #include "BluetoothGattService.hpp"
 #include "BluetoothGattDescriptor.hpp"
@@ -31,31 +32,26 @@
 
 using namespace tinyb;
 
-class tinyb::BluetoothGattCharacteristicChangeHandler {
+void BluetoothNotificationHandler::on_properties_changed_characteristic(GDBusProxy *proxy, GVariant *changed_properties, GStrv invalidated_properties, gpointer userdata) {
 
-public:
-    static void on_properties_changed(GDBusProxy *proxy, GVariant *changed_properties, GStrv invalidated_properties, gpointer userdata) {
+    auto c = static_cast<BluetoothGattCharacteristic*>(userdata);
 
-        auto c = static_cast<BluetoothGattCharacteristic*>(userdata);
+    if(g_variant_n_children(changed_properties) > 0) {
+        GVariantIter *iter = NULL;
 
-        if(g_variant_n_children(changed_properties) > 0) {
-            GVariantIter *iter = NULL;
-
-            GVariant *value;
-            const gchar *key;
-            g_variant_get(changed_properties, "a{sv}", &iter);
-            while (iter != nullptr && g_variant_iter_loop(iter, "{&sv}", &key, &value)) {
-                auto value_callback = c->value_changed_callback;
-                if (value_callback != nullptr && g_ascii_strncasecmp(key, "value", 5) == 0) {
-                    std::vector<unsigned char> new_value = from_iter_to_vector(value);
-                    value_callback(new_value);
-                }
+        GVariant *value;
+        const gchar *key;
+        g_variant_get(changed_properties, "a{sv}", &iter);
+        while (iter != nullptr && g_variant_iter_loop(iter, "{&sv}", &key, &value)) {
+            auto value_callback = c->value_changed_callback;
+            if (value_callback != nullptr && g_ascii_strncasecmp(key, "value", 5) == 0) {
+                std::vector<unsigned char> new_value = from_iter_to_vector(value);
+                value_callback(new_value);
             }
-            g_variant_iter_free (iter);
         }
+        g_variant_iter_free (iter);
     }
-
-};
+}
 
 std::string BluetoothGattCharacteristic::get_class_name() const
 {
@@ -83,7 +79,7 @@ BluetoothGattCharacteristic::BluetoothGattCharacteristic(GattCharacteristic1 *ob
     g_object_ref(object);
 
     g_signal_connect(G_DBUS_PROXY(object), "g-properties-changed",
-        G_CALLBACK(BluetoothGattCharacteristicChangeHandler::on_properties_changed), this);
+        G_CALLBACK(BluetoothNotificationHandler::on_properties_changed_characteristic), this);
 }
 
 BluetoothGattCharacteristic::BluetoothGattCharacteristic(const BluetoothGattCharacteristic &object)
