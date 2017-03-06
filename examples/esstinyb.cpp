@@ -24,7 +24,8 @@
 
 /*
  * This sample looks for a device that implements the Environmental Sensing
- * Service and supports temperatures notifications. It then starts notfication
+ * Service and supports temperatures notifications. Once found, sensor name
+ * and notification interval are displayed. It then starts notfication
  * updates and displays samples until CRTL+C is hit.
  * Sample has been tested with the following devices:
  * - Zephyr Environmental Sensing Profile sample running on Arduino 101
